@@ -7,7 +7,7 @@ import (
 	"task-api/model"
 	"task-api/storage"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 )
 
 func GetTasks(w http.ResponseWriter, r *http.Request) {
@@ -27,8 +27,9 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetTaskByID(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, err := strconv.Atoi(vars["id"])
+	// Menggunakan chi.URLParam untuk mengambil parameter id
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
 		return
@@ -44,8 +45,9 @@ func GetTaskByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteTask(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, err := strconv.Atoi(vars["id"])
+	// Menggunakan chi.URLParam untuk mengambil parameter id
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
 		return
@@ -57,3 +59,12 @@ func DeleteTask(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Task not found", http.StatusNotFound)
 	}
 }
+
+/*
+Penjelasan perubahan untuk Chi Router:
+1. Import diganti dari gorilla/mux ke github.com/go-chi/chi/v5
+2. Pengambilan parameter URL menggunakan chi.URLParam() alih-alih mux.Vars()
+3. Sintaks lebih sederhana dan lebih ringkas
+4. Performa lebih baik dibanding gorilla/mux
+5. Lebih mudah untuk menambahkan middleware jika diperlukan
+*/
