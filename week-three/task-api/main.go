@@ -4,20 +4,18 @@ import (
     "fmt"
     "net/http"
     "task-api/handler"
+
+    "github.com/gorilla/mux"
 )
 
 func main() {
-    http.HandleFunc("/tasks", func(w http.ResponseWriter, r *http.Request) {
-        switch r.Method {
-        case "GET":
-            handler.GetTasks(w, r)
-        case "POST":
-            handler.CreateTask(w, r)
-        default:
-            http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-        }
-    })
+    r := mux.NewRouter()
+
+    r.HandleFunc("/tasks", handler.GetTasks).Methods("GET")
+    r.HandleFunc("/tasks", handler.CreateTask).Methods("POST")
+    r.HandleFunc("/tasks/{id}", handler.GetTaskByID).Methods("GET")
+    r.HandleFunc("/tasks/{id}", handler.DeleteTask).Methods("DELETE")
 
     fmt.Println("Server running at http://localhost:8080")
-    http.ListenAndServe(":8080", nil)
+    http.ListenAndServe(":8080", r)
 }
