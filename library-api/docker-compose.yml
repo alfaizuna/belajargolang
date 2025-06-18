@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: library_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: library_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data: 
+
+  # Penjelasan fungsi-fungsi di atas (dalam konteks docker-compose.yml):
+  #
+  # - services: Bagian ini mendefinisikan service yang akan dijalankan oleh Docker Compose.
+  # - postgres: Service database PostgreSQL yang digunakan aplikasi.
+  #     - image: Menggunakan image resmi postgres dari Docker Hub.
+  #     - container_name: Nama container yang akan muncul di Docker.
+  #     - environment: Variabel lingkungan untuk mengatur user, password, dan nama database.
+  #     - ports: Memetakan port 5433 di host ke 5432 di container (agar tidak bentrok dengan PostgreSQL lokal).
+  #     - volumes: Menyimpan data database secara persisten di volume bernama postgres_data.
+  # - volumes: Mendefinisikan volume bernama postgres_data untuk menyimpan data PostgreSQL agar tidak hilang saat container dihapus.
+  #
+  # File ini digunakan untuk menjalankan database PostgreSQL yang akan digunakan oleh aplikasi Library API berbasis Go.
