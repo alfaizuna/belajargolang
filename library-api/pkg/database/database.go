@@ -3,6 +3,7 @@ package database
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"library-api/internal/models"
 
@@ -13,14 +14,14 @@ import (
 var DB *gorm.DB
 
 func InitDB() {
-	dsn := "host=localhost user=postgres password=postgres dbname=library_db port=5433 sslmode=disable"
+	dsn := os.Getenv("DB_DSN")
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
 
 	// Auto Migrate
-	err = db.AutoMigrate(&models.Book{}, &models.Student{}, &models.Borrowing{})
+	err = db.AutoMigrate(&models.Book{}, &models.Student{}, &models.Borrowing{}, &models.User{})
 	if err != nil {
 		log.Fatal("Failed to migrate database:", err)
 	}
@@ -30,7 +31,7 @@ func InitDB() {
 }
 
 /*
-File ini adalah package database untuk aplikasi Library API berbasis Go. 
+File ini adalah package database untuk aplikasi Library API berbasis Go.
 Fungsinya sebagai pengelola koneksi dan inisialisasi database menggunakan GORM (ORM untuk Go) dan PostgreSQL.
 
 Penjelasan bagian-bagian file:
@@ -45,4 +46,3 @@ Penjelasan bagian-bagian file:
 
 File ini sangat penting karena menjadi fondasi seluruh operasi database pada aplikasi, memastikan koneksi dan struktur tabel sudah siap sebelum aplikasi berjalan.
 */
-

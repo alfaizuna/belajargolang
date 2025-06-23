@@ -5,13 +5,22 @@ import (
 	"net/http"
 
 	"library-api/internal/handlers"
+	"library-api/internal/middleware"
+	"library-api/internal/models"
+	"library-api/internal/repository"
 	"library-api/pkg/database"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	chiMiddleware "github.com/go-chi/chi/v5/middleware"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	// Load .env file
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found, menggunakan environment variable dari sistem")
+	}
+
 	// Initialize database
 	database.InitDB()
 
@@ -19,14 +28,18 @@ func main() {
 	r := chi.NewRouter()
 
 	// Middleware
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-	r.Use(middleware.RealIP)
+	r.Use(chiMiddleware.Logger)
+	r.Use(chiMiddleware.Recoverer)
+	r.Use(chiMiddleware.RealIP)
 
 	// Initialize handlers
 	bookHandler := handlers.NewBookHandler()
 	studentHandler := handlers.NewStudentHandler()
 	borrowingHandler := handlers.NewBorrowingHandler()
+
+	// Tambah: UserRepository dan AuthHandler
+	userRepo := repository.NewUserRepository(database.DB)
+	authHandler := handlers.NewAuthHandler(userRepo)
 
 	// Book routes
 	r.Route("/api/books", func(r chi.Router) {
@@ -53,6 +66,25 @@ func main() {
 		r.Put("/{id}/return", borrowingHandler.ReturnBook)
 		r.Get("/student/{student_id}", borrowingHandler.GetStudentBorrowings)
 		r.Get("/book/{book_id}", borrowingHandler.GetBookBorrowings)
+	})
+
+	// Auth routes
+	r.Route("/api/auth", func(r chi.Router) {
+		r.Post("/register", authHandler.Register)
+		r.Post("/login", authHandler.Login)
+		r.Group(func(r chi.Router) {
+			r.Use(middleware.AuthMiddleware(userRepo))
+			r.Get("/profile", authHandler.Profile)
+		})
+	})
+
+	// Contoh RBAC: hanya admin bisa akses endpoint ini
+	r.Group(func(r chi.Router) {
+		r.Use(middleware.AuthMiddleware(userRepo))
+		r.Use(middleware.RequireRole(models.AdminRole))
+		r.Get("/api/admin-only", func(w http.ResponseWriter, r *http.Request) {
+			w.Write([]byte("Hello, admin!"))
+		})
 	})
 
 	// Start server
